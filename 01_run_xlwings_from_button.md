@@ -219,3 +219,72 @@ End Sub
 ### 7. Run the macro
 
 Now, click the button in Excel, and your Python script will execute.
+
+---
+# DEU
+
+Hier ist die Übersetzung ins Deutsche:
+
+Um ein Makro in Python für Excel zu schreiben und es mit einer Schaltfläche zu verknüpfen, können Sie die Bibliothek xlwings verwenden. Hier ist eine Schritt-für-Schritt-Anleitung:
+
+1. Installieren Sie die xlwings-Bibliothek
+```
+pip install xlwings
+```
+
+2. Schreiben Sie den Python-Code
+Erstellen Sie ein Python-Skript für das Makro. Zum Beispiel nennen wir es `my_macro.py`.
+
+Beispielcode:
+
+```python
+import xlwings as xw
+
+def my_macro():
+    wb = xw.Book.caller()  # Ruft das aktive Excel-Dokument ab
+    sheet = wb.sheets[0]  # Wählt das erste Blatt
+    sheet["A1"].value = "Hallo, Excel!"  # Ändert den Wert der Zelle A1
+```
+
+3. Aktivieren Sie das xlwings-Add-In
+Um xlwings in Excel 2007 zu verwenden, müssen Sie das entsprechende VBA-Add-In aktivieren:
+
+- Öffnen Sie Excel 2007.
+- Gehen Sie zur Office-Schaltfläche (oben links) und wählen Sie Excel-Optionen.
+- Gehen Sie zum Abschnitt Add-Ins.
+- Wählen Sie im Dropdown-Menü "Verwalten" (unten im Fenster) Excel-Add-Ins und klicken Sie auf "Gehe zu".
+- Klicken Sie auf Durchsuchen und suchen Sie die Datei `xlwings.xlam`:
+  Die Datei `xlwings.xlam` befindet sich normalerweise im Python-Verzeichnis, im Ordner `Lib\site-packages\xlwings\addin\`.
+  Beispielpfad: `C:\Python313\Lib\site-packages\xlwings\addin\xlwings.xlam`.
+- Wählen Sie die Datei aus und klicken Sie auf OK.
+- Stellen Sie sicher, dass das xlwings-Add-In im Listenfeld aktiviert ist, und klicken Sie auf OK.
+- Öffnen Sie den VBA-Editor (Alt + F11).
+- Wählen Sie im VBA-Menü Tools → References (Dienstprogramme → Verweise).
+- Stellen Sie sicher, dass xlwings in der Liste der verbundenen Verweise aufgeführt ist. Aktivieren Sie es, falls es nicht aktiviert ist.
+
+4. Konfigurieren Sie die xlwings.conf
+Erstellen Sie eine Konfigurationsdatei `xlwings.conf` im Ordner mit der Excel-Datei. Fügen Sie den folgenden Text hinzu:
+
+```
+"INTERPRETER_WIN","C:\Python313\python.exe"
+"PYTHONPATH","C:\Users\Admin\Desktop\01_Excel\Python"
+```
+wobei `PYTHONPATH` der vollständige Pfad zum Ordner ist, in dem sich die Datei `macro.py` befindet.
+
+5. Erstellen Sie VBA-Code zum Aufrufen des Python-Skripts
+Öffnen Sie den VBA-Editor (Alt + F11) und fügen Sie ein neues Modul hinzu. Fügen Sie den folgenden Code ein:
+
+```vba
+Sub RunPythonMacro()
+    RunPython "import macro ; macro.my_macro()"
+End Sub
+```
+
+6. Fügen Sie eine Schaltfläche in Excel hinzu
+- Gehen Sie zur Registerkarte Entwickler (Developer).
+- Klicken Sie auf Einfügen -> Formular -> Schaltfläche (Button).
+- Zeichnen Sie die Schaltfläche auf dem Blatt.
+- Wählen Sie im Fenster "Makro zuweisen" `RunPythonMacro` und klicken Sie auf "OK".
+
+7. Starten Sie das Makro
+Klicken Sie nun auf die Schaltfläche in Excel, und Ihr Python-Skript wird ausgeführt.
