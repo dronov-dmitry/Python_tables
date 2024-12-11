@@ -55,12 +55,16 @@ def main():
         messagebox.showinfo("Info", f"Name: {name}\nAge: {age}")
     else:
         messagebox.showinfo("Info", "Dialog canceled.")
+        name = ''
+        age = ''
+    return name, age
 
 def my_macro():
     # Открываем активную книгу
     wb = xw.Book.caller()
-    main()
+    name, age = main()
     sheet = wb.sheets[0]  # Используем первый лист
 
     # Изменяем ячейку A1
-    sheet["A1"].value = "Привет, Excel!"
+    sheet["A1"].value = name # "Привет, Excel!"
+    sheet["A2"].value = int(age) # "Привет, Excel!"
