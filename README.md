@@ -4,4 +4,4 @@ Markdown files at 4 languages : UKR/RU/ENG/DEU
 | -------- | ------- | ------- |
 | 01_run_python_button_under_Excel.md | Install and run python code from excel button | https://youtu.be/oT7fbW9CrpE | 
 | 02_run_python_button_under_LibreOffice.md | Run python code from LibreOffice button | https://youtu.be/g8J7bbVYHu8 | 
-|  | Why ExcelPython is better than LibreOfficePython | [https://youtu.be/g8J7bbVYHu8](https://youtu.be/ulobv8SavM4) | 
+|  | Why ExcelPython is better than LibreOfficePython | https://youtu.be/ulobv8SavM4 | 
