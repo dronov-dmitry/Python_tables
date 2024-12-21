@@ -278,47 +278,6 @@
 - `TEXT` — текст.
 - `FORMULA` — формула.
 
----
-
-### **3. Пример использования `com.sun.star.table` в Python**
-
-Пример автоматизации изменения диапазона ячеек:
-```python
-import uno
-
-def modify_calc_table():
-    # Подключение к LibreOffice
-    local_context = uno.getComponentContext()
-    resolver = local_context.ServiceManager.createInstanceWithContext(
-        "com.sun.star.bridge.UnoUrlResolver", local_context
-    )
-    context = resolver.resolve("uno:socket,host=localhost,port=2002;urp;StarOffice.ComponentContext")
-    desktop = context.ServiceManager.createInstanceWithContext(
-        "com.sun.star.frame.Desktop", context
-    )
-
-    # Создание документа
-    document = desktop.loadComponentFromURL("private:factory/scalc", "_blank", 0, ())
-    sheet = document.Sheets.getByIndex(0)
-
-    # Работа с ячейкой
-    cell = sheet.getCellByPosition(0, 0)  # A1
-    cell.String = "Hello, Calc!"
-    cell.CellBackColor = 0xFFFF00  # Желтый фон
-
-    # Работа с диапазоном
-    range_cells = sheet.getCellRangeByPosition(0, 0, 2, 2)  # Диапазон A1:C3
-    range_cells.setDataArray([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-
-    # Выравнивание текста
-    for row in range(3):
-        for col in range(3):
-            cell = sheet.getCellByPosition(col, row)
-            cell.HoriJustify = uno.getConstantByName("com.sun.star.table.CellHoriJustify.CENTER")
-
-if __name__ == "__main__":
-    modify_calc_table()
-```
 # **10. com.sun.star.sheet**
 
 Модуль `com.sun.star.sheet` предоставляет интерфейсы и классы для работы с электронными таблицами LibreOffice Calc. Этот модуль дополняет функциональность `com.sun.star.table`, позволяя работать с формулами, функциями, фильтрами, диаграммами и другими элементами, специфичными для таблиц.
