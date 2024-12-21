@@ -415,24 +415,24 @@ def apply_filter(*args):
     sheet = document.Sheets.getByIndex(0)  # Получаем лист по индексу (0 для первого листа)
 
     # Определение диапазона ячеек для фильтрации (D1:E8)
-    # cell_range = sheet.getCellRangeByName("D1:E8")
+    cell_range = sheet.getCellRangeByName("D1:E8")
 
     # Создание фильтра
-    # filter_descriptor = cell_range.createFilterDescriptor(True)
+    filter_descriptor = cell_range.createFilterDescriptor(True)
 
     # Установка параметров фильтра
-    # filter_descriptor.ContainsHeader = True
+    filter_descriptor.ContainsHeader = True
 
     # Создание поля фильтра
-    # filter_field = uno.createUnoStruct("com.sun.star.sheet.TableFilterField")
-    # filter_field.Field = 0  # Первый столбец (D)
-    # filter_field.Operator = 7  # 3 - equal, 2 - not equal, 4 - less and equal, 5 - more and equal, 6 - less, 7 - more
-    # filter_field.IsNumeric = True  # Указание, что это числовое значение
-    # filter_field.NumericValue = 2021 # datetime(2021, 7, 1)  # Устанавливаем значение даты (01/07/2021)
+    filter_field = uno.createUnoStruct("com.sun.star.sheet.TableFilterField")
+    filter_field.Field = 0  # Первый столбец (D)
+    filter_field.Operator = 7  # 3 - equal, 2 - not equal, 4 - less and equal, 5 - more and equal, 6 - less, 7 - more
+    filter_field.IsNumeric = True  # Указание, что это числовое значение
+    filter_field.NumericValue = 2021 # datetime(2021, 7, 1)  # Устанавливаем значение даты (01/07/2021)
 
     # Применение фильтра
-    # filter_descriptor.FilterFields = (filter_field,)
-    # cell_range.filter(filter_descriptor)
+    filter_descriptor.FilterFields = (filter_field,)
+    cell_range.filter(filter_descriptor)
 ```
 
 ---
