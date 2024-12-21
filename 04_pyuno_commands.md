@@ -409,21 +409,30 @@
 
 #### **Пример 2: Создание фильтра**
 ```python
-def apply_filter():
-    document = desktop.loadComponentFromURL("private:factory/scalc", "_blank", 0, ())
-    sheet = document.Sheets.getByIndex(0)
+def apply_filter(*args):
+    # Получение текущего документа
+    document = XSCRIPTCONTEXT.getDocument()
+    sheet = document.Sheets.getByIndex(0)  # Получаем лист по индексу (0 для первого листа)
 
-    # Диапазон для фильтрации
-    range = sheet.getCellRangeByPosition(0, 0, 4, 10)  # A1:E11
+    # Определение диапазона ячеек для фильтрации (D1:E8)
+    # cell_range = sheet.getCellRangeByName("D1:E8")
 
     # Создание фильтра
-    filterDescriptor = range.createFilterDescriptor(True)
-    filterDescriptor.FilterFields = (
-        {"Field": 0, "Operator": com.sun.star.sheet.FilterOperator.EQUAL, "Value": "Test"},
-    )
-    
+    # filter_descriptor = cell_range.createFilterDescriptor(True)
+
+    # Установка параметров фильтра
+    # filter_descriptor.ContainsHeader = True
+
+    # Создание поля фильтра
+    # filter_field = uno.createUnoStruct("com.sun.star.sheet.TableFilterField")
+    # filter_field.Field = 0  # Первый столбец (D)
+    # filter_field.Operator = 7  # 3 - equal, 2 - not equal, 4 - less and equal, 5 - more and equal, 6 - less, 7 - more
+    # filter_field.IsNumeric = True  # Указание, что это числовое значение
+    # filter_field.NumericValue = 2021 # datetime(2021, 7, 1)  # Устанавливаем значение даты (01/07/2021)
+
     # Применение фильтра
-    range.filter(filterDescriptor)
+    # filter_descriptor.FilterFields = (filter_field,)
+    # cell_range.filter(filter_descriptor)
 ```
 
 ---
