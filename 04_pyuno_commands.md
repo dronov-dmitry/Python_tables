@@ -407,34 +407,6 @@
 
 ---
 
-### **3. Примеры использования `com.sun.star.sheet`**
-
-#### **Пример 1: Вызов функции SUM**
-```python
-import uno
-
-def calc_sum():
-    local_context = uno.getComponentContext()
-    resolver = local_context.ServiceManager.createInstanceWithContext(
-        "com.sun.star.bridge.UnoUrlResolver", local_context
-    )
-    context = resolver.resolve("uno:socket,host=localhost,port=2002;urp;StarOffice.ComponentContext")
-
-    # Получение доступа к FunctionAccess
-    func_access = context.ServiceManager.createInstanceWithContext(
-        "com.sun.star.sheet.FunctionAccess", context
-    )
-    
-    # Вызов функции SUM
-    result = func_access.callFunction("SUM", [[1, 2, 3, 4, 5]])
-    print("Сумма:", result)
-
-if __name__ == "__main__":
-    calc_sum()
-```
-
----
-
 #### **Пример 2: Создание фильтра**
 ```python
 def apply_filter():
