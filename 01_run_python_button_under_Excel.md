@@ -142,6 +142,19 @@ Sub RunPythonMacro()
     RunPython "import macro ; macro.my_macro()"
 End Sub
 ```
+or 
+```vba
+Sub RunPythonScript()
+    On Error GoTo ErrorHandler
+    
+    ' Ensure xlwings add-in is installed and active
+    Application.Run "xlwings.xlam!RunPython", "import my_macro; my_macro.my_macro()"
+    Exit Sub
+
+ErrorHandler:
+    MsgBox "An error occurred: " & Err.Description
+End Sub
+```
 
 ### 6. Добавьте кнопку в Excel
 
@@ -221,6 +234,19 @@ Sub RunPythonMacro()
     RunPython "import macro ; macro.my_macro()"
 End Sub
 ```
+or 
+```vba
+Sub RunPythonScript()
+    On Error GoTo ErrorHandler
+    
+    ' Ensure xlwings add-in is installed and active
+    Application.Run "xlwings.xlam!RunPython", "import my_macro; my_macro.my_macro()"
+    Exit Sub
+
+ErrorHandler:
+    MsgBox "An error occurred: " & Err.Description
+End Sub
+```
 
 ### 6. Add a button in Excel
 
@@ -290,6 +316,19 @@ wobei `PYTHONPATH` der vollständige Pfad zum Ordner ist, in dem sich die Datei 
 ```vba
 Sub RunPythonMacro()
     RunPython "import macro ; macro.my_macro()"
+End Sub
+```
+or 
+```vba
+Sub RunPythonScript()
+    On Error GoTo ErrorHandler
+    
+    ' Ensure xlwings add-in is installed and active
+    Application.Run "xlwings.xlam!RunPython", "import my_macro; my_macro.my_macro()"
+    Exit Sub
+
+ErrorHandler:
+    MsgBox "An error occurred: " & Err.Description
 End Sub
 ```
 
