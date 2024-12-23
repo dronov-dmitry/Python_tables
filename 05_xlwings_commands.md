@@ -7,6 +7,8 @@ def write_text(fPath, fName, data='msg', ext="txt", encd=''): #
 	return completeName
 
 def my_macro():
+	# ЗАПОЛНЯЕМ ЗНАЧЕНИЯ ДЛЯ СРЕЗА ЯЧЕЕК
+	sheet.range('B1:B5').value = [1, 2, 3, 4, 5]
 	# CREATE CHART
 	chart = sheet.charts.add()
 	chart.set_source_data(sheet.range('A1:B10'))
