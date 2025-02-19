@@ -6,26 +6,71 @@ To run a C# application from a VBA button in Excel, you have a few different app
 This method runs a standalone C# application (`.exe`) from a button in Excel.
 
 #### **Steps:**
-1. **Create a C# Console Application**
+1. **Install Dependencies:**
+Make sure you have **Microsoft.Office.Interop.Excel** installed. If not, install it via NuGet:
+```sh
+Install-Package Microsoft.Office.Interop.Excel
+```
+2. **Create a C# Console Application**
    - Open **Visual Studio** and create a new **Console App (.NET Framework)**.
    - Write your C# logic inside `Main()`.
 
    ```csharp
    using System;
-
+   using System.Runtime.InteropServices;
+   using Excel = Microsoft.Office.Interop.Excel;
    class Program
    {
        static void Main()
        {
-           Console.WriteLine("Hello from C#!");
-           System.Threading.Thread.Sleep(3000); // Pause to see output
+           Console.Write("Attach process for debug: Ctrl+Alt+P -> Track Window");
+           string name = Console.ReadLine();
+           Console.WriteLine($"Here is going program!");
+           try
+           {
+               // Attach to the running Excel application
+               Excel.Application excelApp = (Excel.Application)Marshal.GetActiveObject("Excel.Application");
+               if (excelApp == null || excelApp.Workbooks.Count == 0)
+               {
+                   Console.WriteLine("No open Excel workbooks found.");
+                   return;
+               }
+
+               // Get the active workbook
+               Excel.Workbook workbook = excelApp.ActiveWorkbook;
+
+               Console.WriteLine("Workbook: " + workbook.Name);
+
+               // Iterate through all sheets
+               foreach (Excel.Worksheet sheet in workbook.Sheets)
+               {
+                   Console.WriteLine("Sheet: " + sheet.Name);
+
+                   // Write a value to cell A1
+                   sheet.Cells[1, 1] = "Hello, Excel!";
+               }
+
+               // Save workbook
+               workbook.Save();
+               Console.WriteLine("Data written successfully.");
+           }
+           catch (COMException)
+           {
+               Console.WriteLine("Excel is not running or no workbook is open.");
+           }
+           catch (Exception ex)
+           {
+               Console.WriteLine("Error: " + ex.Message);
+           }
+           Console.Write("End of programm");
+           string endProgram = Console.ReadLine();
        }
    }
    ```
 
-2. **Build the C# Project** to generate an `.exe` file (located in `bin\Debug` or `bin\Release`).
+3. **Build the C# Project** to generate an `.exe` file (located in `bin\Debug` or `bin\Release`).
 
-3. **Write VBA Code to Run the C# Executable**
+4. **Write VBA Code to Run the C# Executable**
    - Add a button to an Excel sheet.
    - Open **VBA Editor** (`Alt + F11`).
    - Create a new module and add this VBA code:
@@ -38,9 +83,9 @@ This method runs a standalone C# application (`.exe`) from a button in Excel.
    End Sub
    ```
 
-4. **Assign the Macro** to the button.
+5. **Assign the Macro** to the button.
 
-5. **Run the Button**, and it should execute the C# program.
+6. **Run the Button**, and it should execute the C# program.
 
 ---
 
