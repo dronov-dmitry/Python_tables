@@ -21,8 +21,36 @@ Install-Package Microsoft.Office.Interop.Excel
    using Excel = Microsoft.Office.Interop.Excel;
    class Program
    {
-       static void Main()
+       static void Main(string[] args)
        {
+        bool isDebug = false;
+        bool isDialogWindow = false;
+        bool isPrintPdf = false;
+
+        if (args.Length == 0)
+           {
+               MessageBox.Show($"No arguments provided.");
+           }
+           else
+           {
+               // Loop through each argument and print it
+               for (int i = 0; i < args.Length; i++)
+               {
+                   string arg = args[i];
+                   if (arg.Contains("DEBUG"))
+                   {
+                       isDebug = true;
+                   }
+                   else if (arg.Contains("DIALOG"))
+                   {
+                       isDialogWindow = true;
+                   }
+                   else if (arg.Contains("PDF"))
+                   {
+                       isPrintPdf = true;
+                   }
+               }
+           }
            Console.Write("Attach process for debug: Ctrl+Alt+P -> Track Window");
            string name = Console.ReadLine();
            Console.WriteLine($"Here is going program!");
@@ -76,10 +104,13 @@ Install-Package Microsoft.Office.Interop.Excel
    - Create a new module and add this VBA code:
 
    ```vba
-   Sub RunCSharpExe()
-       Dim exePath As String
-       exePath = "C:\path\to\your\CSharpApp.exe"
-       Shell exePath, vbNormalFocus
+   Sub RunCSharpDebug()
+    Dim exePath As String
+    Dim arguments As String
+    filePath = ThisWorkbook.Path
+    exePath = filePath & "\CSharpApp.exe"
+    arguments = "DEBUG"  ' Replace with your desired arguments
+    Shell exePath & " " & arguments, vbNormalFocus
    End Sub
    ```
 
