@@ -83,6 +83,16 @@ Install-Package Microsoft.Office.Interop.Excel
    End Sub
    ```
 
+   - If you want not showing CMD when run EXE add this VBA code:
+
+   ```vba
+   Sub RunCSharpExe()
+       Dim exePath As String
+       exePath = "C:\path\to\your\CSharpApp.exe"
+       Shell exePath, vbHide
+   End Sub
+   ```
+
 5. **Assign the Macro** to the button.
 
 6. **Run the Button**, and it should execute the C# program.
