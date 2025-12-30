@@ -35,6 +35,10 @@ git pull origin $BaseBranch
 $ReportPath = Join-Path (Split-Path -Parent $LocalDir) "$RepoName-ForkReport.txt"
 "" | Out-File -FilePath $ReportPath -Encoding UTF8
 
+# Добавляем дату запуска в начало отчёта
+("Script run date: " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss")) | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+"`r`n" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+
 # LOAD FORKS
 $page = 1
 $Forks = @()
