@@ -88,14 +88,6 @@ Write-Host "Base branch detected: $BaseBranch"
 git checkout $BaseBranch
 git pull origin $BaseBranch
 
-# REPORT FILE
-$ReportPath = Join-Path (Split-Path -Parent $LocalDir) "$RepoName-ForkReport.txt"
-"" | Out-File -FilePath $ReportPath -Encoding UTF8
-
-# Добавляем дату запуска в начало отчёта
-("Script run date: " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss")) | Out-File -FilePath $ReportPath -Append -Encoding UTF8
-"`r`n" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
-
 # LOAD FORKS
 $page = 1
 $Forks = @()
@@ -117,23 +109,17 @@ while ($true) {
 
 Write-Host "Total forks found: $($Forks.Count)"
 
-# PROCESS FORKS
+# PROCESS FORKS AND COLLECT DATA
+$forkData = @()
+
 $total = $Forks.Count
 $i = 0
 foreach ($fork in $Forks) {
     $i++
-    Write-Progress -Activity "Processing forks ($i of $total)" -Status "Fork: $($fork.owner.login)" -PercentComplete ([int](($i/$total)*100))
+    Write-Progress -Activity "Analyzing forks ($i of $total)" -Status "Fork: $($fork.owner.login)" -PercentComplete ([int](($i/$total)*100))
 
     $remoteName = $fork.owner.login
     $forkBranch = $fork.default_branch
-
-    @"
-===============================
-FORK: $remoteName
-DEFAULT BRANCH: $forkBranch
-===============================
-
-"@ | Out-File -FilePath $ReportPath -Append -Encoding UTF8
 
     $exists = git remote | Select-String -SimpleMatch $remoteName
     if (-not $exists) { 
@@ -142,28 +128,164 @@ DEFAULT BRANCH: $forkBranch
     }
 
     Write-Host "Fetching from $remoteName..."
-    git fetch $remoteName --prune | Out-Null
+    git fetch $remoteName --prune 2>&1 | Out-Null
 
     $ref = "refs/remotes/" + $remoteName + "/" + $forkBranch
     git show-ref --verify --quiet $ref
     if ($LASTEXITCODE -ne 0) {
-        "NO BRANCH " + $forkBranch + " FOUND - SKIPPED" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+        # Форк без доступной ветки - добавляем с 0 коммитов
+        $forkData += [PSCustomObject]@{
+            RemoteName = $remoteName
+            ForkBranch = $forkBranch
+            CreatedAt = $fork.created_at
+            UpdatedAt = $fork.updated_at
+            HtmlUrl = $fork.html_url
+            CommitCount = 0
+            LogDetailed = $null
+            LogFull = $null
+            HasChanges = $false
+            Error = "NO BRANCH $forkBranch FOUND"
+        }
         continue
     }
 
-    ("COMMITS NOT IN " + $BaseBranch + ":") | Out-File -FilePath $ReportPath -Append -Encoding UTF8
-    $log = git log "$BaseBranch..$remoteName/$forkBranch" --oneline
-    if ($log) { 
-        $log | Out-File -FilePath $ReportPath -Append -Encoding UTF8
-        Write-Host "Found changes in $remoteName"
+    # Получаем коммиты с датами
+    $logDetailed = git log "$BaseBranch..$remoteName/$forkBranch" --pretty=format:"%h - %ad - %s" --date=short
+    $logFull = git log "$BaseBranch..$remoteName/$forkBranch" --pretty=format:"Commit: %h%nAuthor: %an%nDate: %ad%nMessage: %s%n" --date=local
+    
+    if ($logDetailed) { 
+        $commitCount = ($logDetailed | Measure-Object -Line).Lines
     }
-    else { 
+    else {
+        $commitCount = 0
+    }
+    
+    # Сохраняем данные для сортировки
+    $forkData += [PSCustomObject]@{
+        RemoteName = $remoteName
+        ForkBranch = $forkBranch
+        CreatedAt = $fork.created_at
+        UpdatedAt = $fork.updated_at
+        HtmlUrl = $fork.html_url
+        CommitCount = $commitCount
+        LogDetailed = $logDetailed
+        LogFull = $logFull
+        HasChanges = ($commitCount -gt 0)
+        Error = $null
+    }
+}
+
+Write-Progress -Activity "Analyzing forks" -Completed
+
+# REPORT FILE
+$ReportPath = Join-Path (Split-Path -Parent $LocalDir) "$RepoName-ForkReport.txt"
+"" | Out-File -FilePath $ReportPath -Encoding UTF8
+
+# Добавляем дату запуска в начало отчёта
+("Script run date: " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss")) | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+"`r`n" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+
+# Сортируем форки по количеству коммитов (по убыванию)
+$sortedForks = $forkData | Sort-Object -Property CommitCount -Descending
+
+# Считаем статистику для сводки
+$totalForksWithChanges = ($sortedForks | Where-Object { $_.HasChanges }).Count
+$totalCommits = ($sortedForks | Measure-Object -Property CommitCount -Sum).Sum
+
+# Добавляем сводку в начало отчёта
+@"
+=================================
+       SUMMARY REPORT
+=================================
+Total forks: $($sortedForks.Count)
+Forks with changes: $totalForksWithChanges
+Total commits in forks: $totalCommits
+Sorted by: number of changes (descending)
+
+TOP-5 FORKS BY CHANGES:
+"@ | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+
+$topForks = $sortedForks | Where-Object { $_.HasChanges } | Select-Object -First 5
+foreach ($fork in $topForks) {
+    "  $($fork.CommitCount) commits - $($fork.RemoteName) (updated: $($fork.UpdatedAt))" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+}
+
+"`r`n" + ("="*60) + "`r`n" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+
+# PROCESS SORTED FORKS FOR DETAILED REPORT
+$i = 0
+foreach ($fork in $sortedForks) {
+    $i++
+    Write-Progress -Activity "Writing report ($i of $($sortedForks.Count))" -Status "Fork: $($fork.RemoteName)" -PercentComplete ([int](($i/$sortedForks.Count)*100))
+
+    @"
+===============================
+[$i] FORK: $($fork.RemoteName)
+CHANGES: $($fork.CommitCount) commits
+DEFAULT BRANCH: $($fork.ForkBranch)
+CREATED: $($fork.CreatedAt)
+UPDATED: $($fork.UpdatedAt)
+URL: $($fork.HtmlUrl)
+===============================
+
+"@ | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+
+    if ($fork.Error) {
+        "ERROR: $($fork.Error)" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+    }
+    elseif ($fork.HasChanges) {
+        ("COMMITS NOT IN " + $BaseBranch + ":") | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+        
+        "`nSHORT FORMAT:" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+        $fork.LogDetailed | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+        
+        "`nDETAILED FORMAT:" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+        $fork.LogFull | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+        
+        # Статистика
+        $firstCommit = $fork.LogDetailed | Select-Object -Last 1
+        $lastCommit = $fork.LogDetailed | Select-Object -First 1
+        
+        "`nSTATISTICS:" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+        "Total commits: $($fork.CommitCount)" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+        if ($firstCommit) { "First commit: $firstCommit" | Out-File -FilePath $ReportPath -Append -Encoding UTF8 }
+        if ($lastCommit) { "Last commit: $lastCommit" | Out-File -FilePath $ReportPath -Append -Encoding UTF8 }
+    }
+    else {
         "-- NO CHANGES --" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
     }
 
-    "`r`n" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+    "`r`n" + ("="*60) + "`r`n" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
 }
 
-Write-Progress -Activity "Processing forks" -Completed
+Write-Progress -Activity "Writing report" -Completed
+
+# Добавляем итоговую статистику в конец
+@"
+
+=================================
+       FINAL STATISTICS
+=================================
+Total forks processed: $($sortedForks.Count)
+Forks with changes: $totalForksWithChanges
+Forks without changes: $($sortedForks.Count - $totalForksWithChanges)
+Total commits: $totalCommits
+
+Distribution by commit count:
+"@ | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+
+$groups = $sortedForks | Where-Object { $_.HasChanges } | Group-Object { 
+    if ($_.CommitCount -eq 1) { "1 commit" }
+    elseif ($_.CommitCount -le 5) { "2-5 commits" }
+    elseif ($_.CommitCount -le 20) { "6-20 commits" }
+    else { "More than 20 commits" }
+}
+
+foreach ($group in $groups | Sort-Object Name) {
+    "  $($group.Name): $($group.Count) forks" | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+}
+
+"`r`nReport generated: " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss") | Out-File -FilePath $ReportPath -Append -Encoding UTF8
+
 Write-Host "DONE"
 Write-Host "Report saved to: $ReportPath"
